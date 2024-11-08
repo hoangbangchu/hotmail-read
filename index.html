@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<!-- saved from url=(0026)http://160.25.73.124:3000/ -->
+<html lang="en"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+    
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Read Emails</title>
+    <style>
+	body {
+  font-family: Arial, sans-serif;
+  background-color: #f4f4f4;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  flex-direction: column;
+}
+
+h1 {
+  color: #333;
+}
+
+form {
+  background: #fff;
+  padding: 20px;
+  border-radius: 5px;
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+  margin-bottom: 20px;
+}
+
+input[type="text"] {
+  width: 100%;
+  padding: 10px;
+  margin: 10px 0;
+  border: 1px solid #ccc;
+  border-radius: 5px;
+  box-sizing: border-box;
+}
+
+button {
+  width: 100%;
+  padding: 10px;
+  background-color: #252926;
+  color: white;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  font-size: 16px;
+}
+
+button:hover {
+  background-color: #252926;
+}
+
+#email-list {
+  width: 100%;
+  max-width: 500px;
+  background: #fff;
+  padding: 20px;
+  border-radius: 5px;
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+  margin-top: 20px;
+  list-style-type: none;
+  padding: 0;
+}
+
+#email-list li {
+  padding: 10px;
+  border-bottom: 1px solid #ccc;
+  cursor: pointer;
+}
+
+#email-list li:hover {
+  background-color: #f4f4f4;
+}
+
+#email-content {
+  display: none;
+  background: #fff;
+  padding: 20px;
+  border-radius: 5px;
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+  width: 100%;
+  max-width: 500px;
+  word-wrap: break-word;
+  margin-top: 20px;
+}
+
+#loading {
+  display: none;
+  font-size: 16px;
+  color: #333;
+  margin-top: 20px;
+}
+
+#back-button {
+  display: none;
+  margin-top: 10px;
+  padding: 10px;
+  background-color: #007bff;
+  color: white;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+}
+
+#back-button:hover {
+  background-color: #0056b3;
+}
+
+	</style>
+</head>
+<body>
+    <h1>Đọc mail</h1>
+    <form id="email-form">
+        <input type="text" id="credentials" placeholder="Enter email|pass|refresh_token|client_id" value ="chingchingbm@outlook.com|mk123|M.C541_SN1.0.U.-Cu0DOxUn2NvZsoshfTVwrMYmrhXkDOmMAeZ4RTNK4GGjjiMrj0d!F26LTIXEHZkvxBMTUDr!0AiKWr8uuhBfumo73o3YEeOQNR7cX4pWEtdLG7uUanatwfaVhNwrxcvd*u76dyHIYs2EyWQA8qgth45hSghTrVnStxZ9fTvssGwlk009W4dA7643owna7mmi*RHVVJGNPtJoTZcZliAQ2Jmld0xrFnEwI6GuZ3h0cZovOukMlXZ1zGNx0hHBXXab5s9EaTJp7nTyA4d473bwecn11zBlXVZNeeP1Y7Pe24eWKXgHclctuFxz5JgeimKoNy3Z!e62Q1dE3PAz7gn*hJM$|9e5f94bc-e8a4-4e73-b8be-63364c29d753">
+        <button type="submit">Submit</button>
+    </form>
+    <div id="loading" style="display: block;">Loading emails...</div>
+    <ul id="email-list" style="display: none;"></ul>
+    <div id="email-content" style="display: none;">Invalid input format. Please enter in the format: email|pass|refresh_token|client_id</div>
+    <button id="back-button" style="display: none;">Back to Email List</button>
+
+    <script>
+        document.getElementById('email-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            document.getElementById('loading').style.display = 'block';
+            document.getElementById('email-list').style.display = 'none';
+            document.getElementById('email-content').style.display = 'none';
+            document.getElementById('back-button').style.display = 'none';
+
+            const credentials = document.getElementById('credentials').value.split('|');
+          
+
+
+            try {
+                const response = await fetch(`/get_messages.php?input=`+  encodeURIComponent(document.getElementById('credentials').value));
+                const data = await response.json();
+                document.getElementById('loading').style.display = 'none';
+
+                const emailList = document.getElementById('email-list');
+                emailList.innerHTML = '';
+
+                if (data.messages && data.messages.length > 0) {
+                    data.messages.forEach((message, index) => {
+                        const listItem = document.createElement('li');
+                        listItem.textContent = `${index + 1}. ${message.time} - ${message.sender} - ${message.subject}`;
+                        listItem.addEventListener('click', () => {
+                            document.getElementById('email-content').innerHTML = message.htmlContent;
+                            document.getElementById('email-content').style.display = 'block';
+                            emailList.style.display = 'none';
+                            document.getElementById('back-button').style.display = 'block';
+                        });
+                        emailList.appendChild(listItem);
+                    });
+                    emailList.style.display = 'block';
+                } else {
+                    emailList.innerHTML = 'No messages found.';
+                    emailList.style.display = 'block';
+                }
+            } catch (error) {
+                document.getElementById('loading').style.display = 'none';
+                document.getElementById('email-content').innerHTML = `Error: ${error}`;
+                document.getElementById('email-content').style.display = 'block';
+            }
+        });
+
+        document.getElementById('back-button').addEventListener('click', () => {
+            document.getElementById('email-content').style.display = 'none';
+            document.getElementById('email-list').style.display = 'block';
+            document.getElementById('back-button').style.display = 'none';
+        });
+    </script>
+
+
+</body></html>
